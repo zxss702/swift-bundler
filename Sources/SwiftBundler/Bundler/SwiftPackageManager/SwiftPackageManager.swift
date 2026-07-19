@@ -289,7 +289,6 @@ enum SwiftPackageManager {
     switch platform {
       case .windows:
         let debugArguments: [String]
-        let guiArguments: [String]
 
         if buildContext.genericContext.configuration == .debug {
           debugArguments = [
@@ -301,14 +300,10 @@ enum SwiftPackageManager {
           debugArguments = []
         }
 
-        if buildContext.isGUIExecutable {
-          let frontendArguments = ["-entry-point-function-name", "wWinMain"]
-          let swiftcArguments = frontendArguments.flatMap { ["-Xfrontend", $0] }
-          guiArguments = swiftcArguments.flatMap { ["-Xswiftc", $0] } +
-            ["-Xlinker", "/SUBSYSTEM:WINDOWS"]
-        } else {
-          guiArguments = []
-        }
+        // Note: GUI arguments (/SUBSYSTEM:WINDOWS, /ENTRY) are disabled because
+        // they conflict with @main protocol extensions (e.g. SwiftOmniUI, SwiftCrossUI).
+        // Apps handle WinUI initialization internally via SwiftApplication.main().
+        let guiArguments: [String] = []
 
         platformArguments = debugArguments + guiArguments
       case .macCatalyst, .iOS, .visionOS, .tvOS,
